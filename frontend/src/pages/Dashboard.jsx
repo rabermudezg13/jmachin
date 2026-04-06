@@ -448,12 +448,45 @@ export default function Dashboard() {
               )}
 
               <DetailSection title="Income">
-                <div className="flex flex-wrap gap-2">
+                <div className="flex flex-wrap gap-2 py-1">
                   {(selected.income_types || []).length === 0
                     ? <span className="text-gray-400 text-sm">None selected</span>
                     : (selected.income_types || []).map((k) => <Badge key={k} label={k.replace(/_/g, ' ')} />)
                   }
                 </div>
+                {(selected.income_details || []).length > 0 && (
+                  <div className="mt-2">
+                    <table className="min-w-full text-sm mt-1">
+                      <thead>
+                        <tr className="bg-[#dbe8f5] text-[#1e3a5f]">
+                          <th className="text-left px-3 py-2 font-semibold">Source</th>
+                          <th className="text-left px-3 py-2 font-semibold">Amount</th>
+                          <th className="text-left px-3 py-2 font-semibold">Notes</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {(selected.income_details || []).map((row, i) => (
+                          <tr key={i} className="border-t border-gray-100">
+                            <td className="px-3 py-2">{row.source}</td>
+                            <td className="px-3 py-2 font-medium">
+                              {row.amount ? `$${parseFloat(row.amount).toLocaleString('en-US', { minimumFractionDigits: 2 })}` : '—'}
+                            </td>
+                            <td className="px-3 py-2 text-gray-500">{row.description || '—'}</td>
+                          </tr>
+                        ))}
+                        <tr className="border-t-2 border-[#1e3a5f] bg-[#dbe8f5]">
+                          <td className="px-3 py-2 font-bold text-[#1e3a5f]">Total</td>
+                          <td className="px-3 py-2 font-bold text-[#1e3a5f]">
+                            ${(selected.income_details || [])
+                              .reduce((sum, r) => sum + (parseFloat(r.amount) || 0), 0)
+                              .toLocaleString('en-US', { minimumFractionDigits: 2 })}
+                          </td>
+                          <td></td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
+                )}
               </DetailSection>
 
               <DetailSection title="Deductions">

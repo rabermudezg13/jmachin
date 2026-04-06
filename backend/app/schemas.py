@@ -66,6 +66,7 @@ class SubmissionCreate(BaseModel):
     how_heard: Optional[str] = None
     income_types: Optional[List[str]] = []
     deduction_types: Optional[List[str]] = []
+    income_details: Optional[List[dict]] = []
     dependents: Optional[List[DependentCreate]] = []
 
     # Page 2

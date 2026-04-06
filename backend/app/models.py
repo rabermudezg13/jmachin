@@ -50,6 +50,9 @@ class Submission(Base):
     income_types = Column(JSON, default=list)
     deduction_types = Column(JSON, default=list)
 
+    # Income details with amounts - JSON array of {source, amount, description}
+    income_details = Column(JSON, default=list)
+
     # --- Page 2: Child Tax Credit ---
     claiming_child_credit = Column(Boolean, nullable=True)
     biological_parent = Column(Boolean, nullable=True)

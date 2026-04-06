@@ -110,6 +110,20 @@ export default function Questionnaire() {
   const [benefitsReceived, setBenefitsReceived] = useState([])
   const [otherIncomeTypes, setOtherIncomeTypes] = useState([])
 
+  // Income details - dynamic rows
+  const [incomeDetails, setIncomeDetails] = useState([
+    { source: '', amount: '', description: '' }
+  ])
+
+  const addIncomeRow = () =>
+    setIncomeDetails([...incomeDetails, { source: '', amount: '', description: '' }])
+
+  const removeIncomeRow = (i) =>
+    setIncomeDetails(incomeDetails.filter((_, idx) => idx !== i))
+
+  const updateIncomeRow = (i, field, value) =>
+    setIncomeDetails(incomeDetails.map((row, idx) => idx === i ? { ...row, [field]: value } : row))
+
   const { register, handleSubmit, control, reset, watch, formState: { errors } } = useForm({
     defaultValues: {
       dependents: [{ name: '', relation_type: '', ssn: '', date_of_birth: '', months_lived_home: '' }],
@@ -133,6 +147,7 @@ export default function Questionnaire() {
           setDeductionTypes(d.deduction_types || [])
           setBenefitsReceived(d.benefits_received || [])
           setOtherIncomeTypes(d.other_income_types || [])
+          setIncomeDetails(d.income_details?.length ? d.income_details : [{ source: '', amount: '', description: '' }])
         })
         .catch(() => setError('Could not load your submission. The link may be invalid.'))
         .finally(() => setLoading(false))
@@ -148,6 +163,7 @@ export default function Questionnaire() {
       deduction_types: deductionTypes,
       benefits_received: benefitsReceived,
       other_income_types: otherIncomeTypes,
+      income_details: incomeDetails.filter((r) => r.source?.trim() || r.amount?.trim()),
       dependents: data.dependents?.filter((d) => d.name?.trim()),
     }
 
@@ -355,6 +371,85 @@ export default function Questionnaire() {
                 <div className="section-header">Income — Check all that apply</div>
                 <div className="section-body">
                   <CheckboxGroup options={INCOME_OPTIONS} selected={incomeTypes} onChange={setIncomeTypes} />
+                </div>
+              </div>
+
+              {/* Income Details */}
+              <div className="card mt-4">
+                <div className="section-header">Income Details — Amounts &amp; Sources</div>
+                <div className="section-body space-y-3">
+                  <p className="text-xs text-gray-500">Enter the amount for each income source. You can add as many rows as needed.</p>
+
+                  {/* Header */}
+                  <div className="hidden sm:grid grid-cols-12 gap-2 text-xs font-semibold text-gray-500 uppercase tracking-wide px-1">
+                    <div className="col-span-4">Income Source</div>
+                    <div className="col-span-3">Amount ($)</div>
+                    <div className="col-span-4">Notes / Description</div>
+                    <div className="col-span-1"></div>
+                  </div>
+
+                  {incomeDetails.map((row, i) => (
+                    <div key={i} className="grid grid-cols-12 gap-2 items-center p-2 bg-gray-50 rounded-lg border border-gray-100">
+                      <div className="col-span-12 sm:col-span-4">
+                        <input
+                          className="form-input text-sm"
+                          placeholder="e.g. W-2 Wages, Rental income..."
+                          value={row.source}
+                          onChange={(e) => updateIncomeRow(i, 'source', e.target.value)}
+                        />
+                      </div>
+                      <div className="col-span-6 sm:col-span-3">
+                        <div className="relative">
+                          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm">$</span>
+                          <input
+                            className="form-input text-sm pl-6"
+                            placeholder="0.00"
+                            type="number"
+                            min="0"
+                            step="0.01"
+                            value={row.amount}
+                            onChange={(e) => updateIncomeRow(i, 'amount', e.target.value)}
+                          />
+                        </div>
+                      </div>
+                      <div className="col-span-5 sm:col-span-4">
+                        <input
+                          className="form-input text-sm"
+                          placeholder="Optional notes..."
+                          value={row.description}
+                          onChange={(e) => updateIncomeRow(i, 'description', e.target.value)}
+                        />
+                      </div>
+                      <div className="col-span-1 flex justify-center">
+                        {incomeDetails.length > 1 && (
+                          <button
+                            type="button"
+                            onClick={() => removeIncomeRow(i)}
+                            className="text-red-400 hover:text-red-600 text-xl font-bold leading-none"
+                          >
+                            ×
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+
+                  {/* Total */}
+                  <div className="flex justify-between items-center pt-2 border-t border-gray-200">
+                    <button
+                      type="button"
+                      onClick={addIncomeRow}
+                      className="text-[#1e3a5f] text-sm font-semibold hover:underline flex items-center gap-1"
+                    >
+                      + Add Income Source
+                    </button>
+                    <div className="text-sm font-semibold text-[#1e3a5f]">
+                      Total: $
+                      {incomeDetails
+                        .reduce((sum, r) => sum + (parseFloat(r.amount) || 0), 0)
+                        .toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                    </div>
+                  </div>
                 </div>
               </div>
 
