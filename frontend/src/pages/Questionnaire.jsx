@@ -162,7 +162,12 @@ export default function Questionnaire() {
       }
       navigate(`/thank-you/${submissionToken}`)
     } catch (err) {
-      setError(err.response?.data?.detail || 'Submission failed. Please try again.')
+      const detail = err.response?.data?.detail
+      if (Array.isArray(detail)) {
+        setError(detail.map((d) => d.msg || JSON.stringify(d)).join(', '))
+      } else {
+        setError(detail || 'Submission failed. Please try again.')
+      }
     } finally {
       setSaving(false)
     }

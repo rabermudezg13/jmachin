@@ -22,7 +22,8 @@ export default function Login() {
       login(access_token, me.data)
       navigate('/dashboard')
     } catch (err) {
-      setError(err.response?.data?.detail || 'Login failed. Check your credentials.')
+      const detail = err.response?.data?.detail
+      setError(Array.isArray(detail) ? detail.map((d) => d.msg).join(', ') : detail || 'Login failed. Check your credentials.')
     } finally {
       setLoading(false)
     }
