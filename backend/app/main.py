@@ -2,7 +2,7 @@ import os
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from .database import engine, Base, SessionLocal
-from .routers import auth, submissions, exports
+from .routers import auth, submissions, exports, users
 from . import models
 from .auth import hash_password
 
@@ -16,9 +16,9 @@ def seed_admin():
     try:
         exists = db.query(models.Accountant).first()
         if not exists:
-            admin_name     = os.getenv("ADMIN_NAME",     "Jorge Machin")
-            admin_email    = os.getenv("ADMIN_EMAIL",    "jorgemac1040@gmail.com")
-            admin_password = os.getenv("ADMIN_PASSWORD", "Jorge12345")
+            admin_name     = os.getenv("ADMIN_NAME",     "Admin")
+            admin_email    = os.getenv("ADMIN_EMAIL",    "admin@machinco.com")
+            admin_password = os.getenv("ADMIN_PASSWORD", "Admin12345")
 
             admin = models.Accountant(
                 name=admin_name,
@@ -55,6 +55,7 @@ app.add_middleware(
 app.include_router(auth.router)
 app.include_router(submissions.router)
 app.include_router(exports.router)
+app.include_router(users.router)
 
 
 @app.get("/")

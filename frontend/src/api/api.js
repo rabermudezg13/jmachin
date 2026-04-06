@@ -38,6 +38,11 @@ export const downloadPDFByToken = (token) =>
 export const downloadExcelByToken = (token) =>
   api.get(`/export/by-token/${token}/excel`, { responseType: 'blob' })
 
+// ─── User Management (admin only) ────────────────────────────────────────────
+export const listUsers = () => api.get('/users/')
+export const createUser = (data) => api.post('/users/', data)
+export const deleteUser = (id) => api.delete(`/users/${id}`)
+
 // ─── Helper: trigger browser download ────────────────────────────────────────
 export const triggerDownload = (blob, filename) => {
   const url = window.URL.createObjectURL(blob)

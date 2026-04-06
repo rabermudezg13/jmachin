@@ -3,7 +3,8 @@ import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import {
   listSubmissions, getSubmission, deleteSubmission,
-  downloadPDF, downloadExcel, triggerDownload
+  downloadPDF, downloadExcel, triggerDownload,
+  listUsers, createUser, deleteUser
 } from '../api/api'
 
 function formatDate(dt) {
@@ -22,6 +23,7 @@ function Badge({ label }) {
 export default function Dashboard() {
   const { accountant, logout } = useAuth()
   const navigate = useNavigate()
+  const [activeTab, setActiveTab] = useState('submissions')
   const [submissions, setSubmissions] = useState([])
   const [selected, setSelected] = useState(null)
   const [loadingList, setLoadingList] = useState(true)
@@ -30,11 +32,55 @@ export default function Dashboard() {
   const [search, setSearch] = useState('')
   const [filterDate, setFilterDate] = useState('')
 
+  // Users tab state
+  const [users, setUsers] = useState([])
+  const [loadingUsers, setLoadingUsers] = useState(false)
+  const [userForm, setUserForm] = useState({ name: '', email: '', password: '' })
+  const [userError, setUserError] = useState('')
+  const [userSuccess, setUserSuccess] = useState('')
+  const [savingUser, setSavingUser] = useState(false)
+
   useEffect(() => {
     listSubmissions()
       .then((r) => setSubmissions(r.data))
       .finally(() => setLoadingList(false))
   }, [])
+
+  useEffect(() => {
+    if (activeTab === 'users') {
+      setLoadingUsers(true)
+      listUsers()
+        .then((r) => setUsers(r.data))
+        .finally(() => setLoadingUsers(false))
+    }
+  }, [activeTab])
+
+  const handleCreateUser = async (e) => {
+    e.preventDefault()
+    setSavingUser(true)
+    setUserError('')
+    setUserSuccess('')
+    try {
+      const res = await createUser(userForm)
+      setUsers((prev) => [res.data, ...prev])
+      setUserForm({ name: '', email: '', password: '' })
+      setUserSuccess(`✅ User "${res.data.name}" created successfully!`)
+    } catch (err) {
+      setUserError(err.response?.data?.detail || 'Failed to create user.')
+    } finally {
+      setSavingUser(false)
+    }
+  }
+
+  const handleDeleteUser = async (id, name) => {
+    if (!window.confirm(`Delete user "${name}"? This cannot be undone.`)) return
+    try {
+      await deleteUser(id)
+      setUsers((prev) => prev.filter((u) => u.id !== id))
+    } catch (err) {
+      alert(err.response?.data?.detail || 'Failed to delete user.')
+    }
+  }
 
   const openDetail = async (id) => {
     setLoadingDetail(true)
@@ -106,6 +152,142 @@ export default function Dashboard() {
         </div>
       </header>
 
+      {/* Tab navigation */}
+      <div className="bg-white border-b border-gray-200 px-6">
+        <div className="flex gap-1">
+          {[
+            { key: 'submissions', label: '📋 Submissions' },
+            { key: 'users', label: '👥 Manage Users' },
+          ].map((tab) => (
+            <button
+              key={tab.key}
+              onClick={() => setActiveTab(tab.key)}
+              className={`px-5 py-3 text-sm font-semibold border-b-2 transition-colors
+                ${activeTab === tab.key
+                  ? 'border-[#1e3a5f] text-[#1e3a5f]'
+                  : 'border-transparent text-gray-500 hover:text-gray-700'}`}
+            >
+              {tab.label}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* ─── Users Tab ───────────────────────────────────────────────────── */}
+      {activeTab === 'users' && (
+        <div className="flex-1 overflow-y-auto p-6">
+          <div className="max-w-2xl mx-auto space-y-6">
+
+            {/* Create User Form */}
+            <div className="card">
+              <div className="section-header">Create New User</div>
+              <div className="section-body">
+                {userError && (
+                  <div className="bg-red-50 border border-red-200 text-red-700 text-sm rounded-lg px-4 py-3 mb-4">
+                    {userError}
+                  </div>
+                )}
+                {userSuccess && (
+                  <div className="bg-green-50 border border-green-200 text-green-700 text-sm rounded-lg px-4 py-3 mb-4">
+                    {userSuccess}
+                  </div>
+                )}
+                <form onSubmit={handleCreateUser} className="space-y-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                      <label className="form-label">Full Name</label>
+                      <input
+                        className="form-input"
+                        placeholder="John Doe"
+                        value={userForm.name}
+                        onChange={(e) => setUserForm({ ...userForm, name: e.target.value })}
+                        required
+                      />
+                    </div>
+                    <div>
+                      <label className="form-label">Email</label>
+                      <input
+                        type="email"
+                        className="form-input"
+                        placeholder="john@example.com"
+                        value={userForm.email}
+                        onChange={(e) => setUserForm({ ...userForm, email: e.target.value })}
+                        required
+                      />
+                    </div>
+                  </div>
+                  <div>
+                    <label className="form-label">Password</label>
+                    <input
+                      type="password"
+                      className="form-input"
+                      placeholder="••••••••"
+                      value={userForm.password}
+                      onChange={(e) => setUserForm({ ...userForm, password: e.target.value })}
+                      required
+                      minLength={6}
+                    />
+                  </div>
+                  <button type="submit" disabled={savingUser} className="btn-primary">
+                    {savingUser ? 'Creating...' : '+ Create User'}
+                  </button>
+                </form>
+              </div>
+            </div>
+
+            {/* Users List */}
+            <div className="card">
+              <div className="section-header">All Users</div>
+              <div className="section-body p-0">
+                {loadingUsers ? (
+                  <div className="flex items-center justify-center py-10">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#1e3a5f]" />
+                  </div>
+                ) : users.length === 0 ? (
+                  <p className="text-center text-gray-400 text-sm py-8">No users found</p>
+                ) : (
+                  <table className="min-w-full text-sm">
+                    <thead>
+                      <tr className="bg-[#dbe8f5] text-[#1e3a5f]">
+                        <th className="text-left px-4 py-3 font-semibold">Name</th>
+                        <th className="text-left px-4 py-3 font-semibold">Email</th>
+                        <th className="text-left px-4 py-3 font-semibold">Created</th>
+                        <th className="px-4 py-3"></th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {users.map((u) => (
+                        <tr key={u.id} className="border-t border-gray-100 hover:bg-gray-50">
+                          <td className="px-4 py-3 font-medium">
+                            {u.name}
+                            {u.id === accountant?.id && (
+                              <span className="ml-2 text-xs bg-[#dbe8f5] text-[#1e3a5f] px-2 py-0.5 rounded-full">You</span>
+                            )}
+                          </td>
+                          <td className="px-4 py-3 text-gray-600">{u.email}</td>
+                          <td className="px-4 py-3 text-gray-400">{formatDate(u.created_at)}</td>
+                          <td className="px-4 py-3 text-right">
+                            {u.id !== accountant?.id && (
+                              <button
+                                onClick={() => handleDeleteUser(u.id, u.name)}
+                                className="btn-danger"
+                              >
+                                Delete
+                              </button>
+                            )}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {activeTab === 'submissions' && (
       <div className="flex flex-1 overflow-hidden">
         {/* ─── Sidebar: Submission List ───────────────────────────────────── */}
         <aside className="w-full sm:w-80 lg:w-96 bg-white border-r border-gray-200 flex flex-col">
@@ -345,6 +527,7 @@ export default function Dashboard() {
           )}
         </main>
       </div>
+      )}
     </div>
   )
 }
