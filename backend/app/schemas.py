@@ -67,6 +67,7 @@ class SubmissionCreate(BaseModel):
     income_types: Optional[List[str]] = []
     deduction_types: Optional[List[str]] = []
     income_details: Optional[List[dict]] = []
+    business_expenses: Optional[List[dict]] = []
     dependents: Optional[List[DependentCreate]] = []
 
     # Page 2

@@ -114,15 +114,23 @@ export default function Questionnaire() {
   const [incomeDetails, setIncomeDetails] = useState([
     { source: '', amount: '', description: '' }
   ])
-
   const addIncomeRow = () =>
     setIncomeDetails([...incomeDetails, { source: '', amount: '', description: '' }])
-
   const removeIncomeRow = (i) =>
     setIncomeDetails(incomeDetails.filter((_, idx) => idx !== i))
-
   const updateIncomeRow = (i, field, value) =>
     setIncomeDetails(incomeDetails.map((row, idx) => idx === i ? { ...row, [field]: value } : row))
+
+  // Business expenses - dynamic rows
+  const [businessExpenses, setBusinessExpenses] = useState([
+    { label: '', amount: '' }
+  ])
+  const addExpenseRow = () =>
+    setBusinessExpenses([...businessExpenses, { label: '', amount: '' }])
+  const removeExpenseRow = (i) =>
+    setBusinessExpenses(businessExpenses.filter((_, idx) => idx !== i))
+  const updateExpenseRow = (i, field, value) =>
+    setBusinessExpenses(businessExpenses.map((row, idx) => idx === i ? { ...row, [field]: value } : row))
 
   const { register, handleSubmit, control, reset, watch, formState: { errors } } = useForm({
     defaultValues: {
@@ -148,22 +156,38 @@ export default function Questionnaire() {
           setBenefitsReceived(d.benefits_received || [])
           setOtherIncomeTypes(d.other_income_types || [])
           setIncomeDetails(d.income_details?.length ? d.income_details : [{ source: '', amount: '', description: '' }])
+          setBusinessExpenses(d.business_expenses?.length ? d.business_expenses : [{ label: '', amount: '' }])
         })
         .catch(() => setError('Could not load your submission. The link may be invalid.'))
         .finally(() => setLoading(false))
     }
   }, [token, reset])
 
+  // Convert "true"/"false" strings to real booleans
+  const parseBool = (v) => {
+    if (v === 'true') return true
+    if (v === 'false') return false
+    return null
+  }
+
   const onSubmit = async (data) => {
     setSaving(true)
     setError('')
     const payload = {
       ...data,
+      // Fix boolean fields
+      claiming_child_credit: parseBool(data.claiming_child_credit),
+      biological_parent: parseBool(data.biological_parent),
+      has_custody: parseBool(data.has_custody),
+      delinquent_loans: parseBool(data.delinquent_loans),
+      irs_debt: parseBool(data.irs_debt),
+      // Multi-select arrays
       income_types: incomeTypes,
       deduction_types: deductionTypes,
       benefits_received: benefitsReceived,
       other_income_types: otherIncomeTypes,
       income_details: incomeDetails.filter((r) => r.source?.trim() || r.amount?.trim()),
+      business_expenses: businessExpenses.filter((r) => r.label?.trim() || r.amount?.trim()),
       dependents: data.dependents?.filter((d) => d.name?.trim()),
     }
 
@@ -660,7 +684,7 @@ export default function Questionnaire() {
                     ))}
                   </div>
 
-                  <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mt-2">Expenses</p>
+                  <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mt-2">Standard Expenses</p>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     {[
                       ['expense_advertising', 'Advertising'],
@@ -682,9 +706,72 @@ export default function Questionnaire() {
                       ['expense_other', 'Other'],
                     ].map(([name, label]) => (
                       <Field key={name} label={label}>
-                        <input className="form-input" placeholder="$" {...register(name)} />
+                        <div className="relative">
+                          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm">$</span>
+                          <input className="form-input pl-6" placeholder="0.00" type="number" min="0" step="0.01" {...register(name)} />
+                        </div>
                       </Field>
                     ))}
+                  </div>
+
+                  {/* Additional dynamic expense rows */}
+                  <div className="mt-4">
+                    <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">Additional Expenses</p>
+                    <div className="hidden sm:grid grid-cols-12 gap-2 text-xs font-semibold text-gray-500 uppercase tracking-wide px-1 mb-1">
+                      <div className="col-span-7">Expense Description</div>
+                      <div className="col-span-4">Amount ($)</div>
+                      <div className="col-span-1"></div>
+                    </div>
+                    {businessExpenses.map((row, i) => (
+                      <div key={i} className="grid grid-cols-12 gap-2 items-center mb-2 p-2 bg-gray-50 rounded-lg border border-gray-100">
+                        <div className="col-span-12 sm:col-span-7">
+                          <input
+                            className="form-input text-sm"
+                            placeholder="e.g. Equipment rental, Software..."
+                            value={row.label}
+                            onChange={(e) => updateExpenseRow(i, 'label', e.target.value)}
+                          />
+                        </div>
+                        <div className="col-span-11 sm:col-span-4">
+                          <div className="relative">
+                            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm">$</span>
+                            <input
+                              className="form-input text-sm pl-6"
+                              placeholder="0.00"
+                              type="number"
+                              min="0"
+                              step="0.01"
+                              value={row.amount}
+                              onChange={(e) => updateExpenseRow(i, 'amount', e.target.value)}
+                            />
+                          </div>
+                        </div>
+                        <div className="col-span-1 flex justify-center">
+                          {businessExpenses.length > 1 && (
+                            <button
+                              type="button"
+                              onClick={() => removeExpenseRow(i)}
+                              className="text-red-400 hover:text-red-600 text-xl font-bold"
+                            >×</button>
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                    <div className="flex justify-between items-center pt-2 border-t border-gray-200">
+                      <button
+                        type="button"
+                        onClick={addExpenseRow}
+                        className="text-[#1e3a5f] text-sm font-semibold hover:underline"
+                      >
+                        + Add Expense
+                      </button>
+                      <div className="text-sm font-semibold text-[#1e3a5f]">
+                        Additional Total: $
+                        {businessExpenses
+                          .reduce((sum, r) => sum + (parseFloat(r.amount) || 0), 0)
+                          .toLocaleString('en-US', { minimumFractionDigits: 2 })}
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>

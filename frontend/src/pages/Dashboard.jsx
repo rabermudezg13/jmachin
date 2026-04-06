@@ -532,9 +532,60 @@ export default function Dashboard() {
               {selected.business_name && (
                 <DetailSection title="Business Income &amp; Expenses">
                   <DetailRow label="Business" value={selected.business_name} />
+                  <DetailRow label="Employer ID" value={selected.employer_id} />
                   <DetailRow label="Gross Receipts" value={selected.gross_receipts} />
+                  <DetailRow label="Returns & Allowance" value={selected.returns_allowance} />
+                  <DetailRow label="Cost of Goods Sold" value={selected.cost_goods_sold} />
                   <DetailRow label="Gross Profit" value={selected.gross_profit} />
                   <DetailRow label="Accounting Method" value={selected.accounting_method} />
+                  <DetailRow label="Advertising" value={selected.expense_advertising} />
+                  <DetailRow label="Car & Truck" value={selected.expense_car_truck} />
+                  <DetailRow label="Commissions" value={selected.expense_commissions} />
+                  <DetailRow label="Contract Labor" value={selected.expense_contract_labor} />
+                  <DetailRow label="Depreciation" value={selected.expense_depreciation} />
+                  <DetailRow label="Insurance" value={selected.expense_insurance} />
+                  <DetailRow label="Legal & Professional" value={selected.expense_legal} />
+                  <DetailRow label="Office Expenses" value={selected.expense_office} />
+                  <DetailRow label="Rent/Lease" value={selected.expense_rent_lease} />
+                  <DetailRow label="Repair/Maintenance" value={selected.expense_repair} />
+                  <DetailRow label="Supplies" value={selected.expense_supplies} />
+                  <DetailRow label="Taxes & License" value={selected.expense_taxes_license} />
+                  <DetailRow label="Travel" value={selected.expense_travel} />
+                  <DetailRow label="Meals & Entertainment" value={selected.expense_meals} />
+                  <DetailRow label="Utilities" value={selected.expense_utilities} />
+                  <DetailRow label="Wages" value={selected.expense_wages} />
+                  <DetailRow label="Other" value={selected.expense_other} />
+                  {(selected.business_expenses || []).length > 0 && (
+                    <div className="pt-2">
+                      <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">Additional Expenses</p>
+                      <table className="min-w-full text-sm">
+                        <thead>
+                          <tr className="bg-[#dbe8f5] text-[#1e3a5f]">
+                            <th className="text-left px-3 py-2 font-semibold">Description</th>
+                            <th className="text-left px-3 py-2 font-semibold">Amount</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {(selected.business_expenses || []).map((row, i) => (
+                            <tr key={i} className="border-t border-gray-100">
+                              <td className="px-3 py-2">{row.label}</td>
+                              <td className="px-3 py-2 font-medium">
+                                {row.amount ? `$${parseFloat(row.amount).toLocaleString('en-US', { minimumFractionDigits: 2 })}` : '—'}
+                              </td>
+                            </tr>
+                          ))}
+                          <tr className="border-t-2 border-[#1e3a5f] bg-[#dbe8f5]">
+                            <td className="px-3 py-2 font-bold text-[#1e3a5f]">Total Additional</td>
+                            <td className="px-3 py-2 font-bold text-[#1e3a5f]">
+                              ${(selected.business_expenses || [])
+                                .reduce((sum, r) => sum + (parseFloat(r.amount) || 0), 0)
+                                .toLocaleString('en-US', { minimumFractionDigits: 2 })}
+                            </td>
+                          </tr>
+                        </tbody>
+                      </table>
+                    </div>
+                  )}
                 </DetailSection>
               )}
 
