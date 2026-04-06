@@ -1,14 +1,43 @@
+import os
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from .database import engine, Base
+from .database import engine, Base, SessionLocal
 from .routers import auth, submissions, exports
+from . import models
+from .auth import hash_password
 
 # Create all tables
 Base.metadata.create_all(bind=engine)
 
-app = FastAPI(title="Machin & Co. Tax Services API", version="1.0.0")
 
-import os
+def seed_admin():
+    """Create default admin user if no accountants exist."""
+    db = SessionLocal()
+    try:
+        exists = db.query(models.Accountant).first()
+        if not exists:
+            admin_name     = os.getenv("ADMIN_NAME",     "Jorge Machin")
+            admin_email    = os.getenv("ADMIN_EMAIL",    "jorgemac1040@gmail.com")
+            admin_password = os.getenv("ADMIN_PASSWORD", "Jorge12345")
+
+            admin = models.Accountant(
+                name=admin_name,
+                email=admin_email,
+                hashed_password=hash_password(admin_password),
+            )
+            db.add(admin)
+            db.commit()
+            print(f"✅ Admin user created: {admin_email}")
+        else:
+            print("ℹ️  Admin user already exists, skipping seed.")
+    finally:
+        db.close()
+
+
+# Run seed on startup
+seed_admin()
+
+app = FastAPI(title="Machin & Co. Tax Services API", version="1.0.0")
 
 ALLOWED_ORIGINS = os.getenv(
     "ALLOWED_ORIGINS",
