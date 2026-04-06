@@ -1,0 +1,36 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    @apply bg-gray-50 text-gray-900 font-sans;
+  }
+}
+
+@layer components {
+  .btn-primary {
+    @apply bg-[#1e3a5f] text-white font-semibold px-6 py-2.5 rounded-lg hover:bg-[#16325e] transition-colors disabled:opacity-50 disabled:cursor-not-allowed;
+  }
+  .btn-secondary {
+    @apply bg-white text-[#1e3a5f] font-semibold px-6 py-2.5 rounded-lg border border-[#1e3a5f] hover:bg-navy-50 transition-colors;
+  }
+  .btn-danger {
+    @apply bg-red-600 text-white font-semibold px-4 py-2 rounded-lg hover:bg-red-700 transition-colors text-sm;
+  }
+  .form-input {
+    @apply w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#1e3a5f] focus:border-transparent transition;
+  }
+  .form-label {
+    @apply block text-sm font-semibold text-gray-700 mb-1;
+  }
+  .section-header {
+    @apply bg-[#1e3a5f] text-white font-bold text-sm px-4 py-2 rounded-t-lg;
+  }
+  .section-body {
+    @apply border border-[#1e3a5f] border-t-0 rounded-b-lg p-4 bg-white;
+  }
+  .card {
+    @apply bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden;
+  }
+}
