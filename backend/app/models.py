@@ -137,7 +137,7 @@ class Dependent(Base):
     id = Column(Integer, primary_key=True, index=True)
     submission_id = Column(Integer, ForeignKey("submissions.id"), nullable=False)
     name = Column(String)
-    relationship = Column(String)
+    relation_type = Column(String)
     ssn = Column(String)
     date_of_birth = Column(String)
     months_lived_home = Column(String)

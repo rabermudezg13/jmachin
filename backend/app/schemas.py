@@ -32,7 +32,7 @@ class AccountantOut(BaseModel):
 
 class DependentCreate(BaseModel):
     name: Optional[str] = None
-    relationship: Optional[str] = None
+    relation_type: Optional[str] = None
     ssn: Optional[str] = None
     date_of_birth: Optional[str] = None
     months_lived_home: Optional[str] = None

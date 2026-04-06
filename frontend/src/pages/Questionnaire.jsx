@@ -112,7 +112,7 @@ export default function Questionnaire() {
 
   const { register, handleSubmit, control, reset, watch, formState: { errors } } = useForm({
     defaultValues: {
-      dependents: [{ name: '', relationship: '', ssn: '', date_of_birth: '', months_lived_home: '' }],
+      dependents: [{ name: '', relation_type: '', ssn: '', date_of_birth: '', months_lived_home: '' }],
     },
   })
 
@@ -314,7 +314,7 @@ export default function Questionnaire() {
                       </div>
                       <div>
                         <label className="form-label text-xs">Relationship</label>
-                        <input className="form-input text-xs" {...register(`dependents.${index}.relationship`)} />
+                        <input className="form-input text-xs" {...register(`dependents.${index}.relation_type`)} />
                       </div>
                       <div>
                         <label className="form-label text-xs">SSN</label>
@@ -337,7 +337,7 @@ export default function Questionnaire() {
                   ))}
                   <button
                     type="button"
-                    onClick={() => addDep({ name: '', relationship: '', ssn: '', date_of_birth: '', months_lived_home: '' })}
+                    onClick={() => addDep({ name: '', relation_type: '', ssn: '', date_of_birth: '', months_lived_home: '' })}
                     className="text-[#1e3a5f] text-sm font-semibold hover:underline"
                   >
                     + Add Dependent

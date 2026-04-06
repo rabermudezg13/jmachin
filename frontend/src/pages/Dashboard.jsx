@@ -253,7 +253,7 @@ export default function Dashboard() {
                         {selected.dependents.map((d, i) => (
                           <tr key={i} className="border-t border-gray-100">
                             <td className="px-3 py-2">{d.name}</td>
-                            <td className="px-3 py-2">{d.relationship}</td>
+                            <td className="px-3 py-2">{d.relation_type}</td>
                             <td className="px-3 py-2">{d.ssn}</td>
                             <td className="px-3 py-2">{d.date_of_birth}</td>
                             <td className="px-3 py-2">{d.months_lived_home}</td>
